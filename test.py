@@ -16,26 +16,26 @@ from googleapiclient.errors import HttpError
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/drive.metadata.readonly']
 
-async def dtbase(id, name):
+async def dtbase(id, name, division, cycle):
     db = database.Database()
     await db.connect()
     data = {
         "FileID": id,
-        "Division": "xxx",
+        "Division": division,
         "FileName": name,
-        "Cycle": "xxx",
+        "Cycle": cycle,
         "OldData": True,
     }
     await db.createEntry(data)
     
-# async def clear():
-#     db = database.Database()
-#     await db.connect()
-#     await db.clear_database()clear
+async def clear():
+    db = database.Database()
+    await db.connect()
+    await db.clear_database()
     
     
 def main():
-    #clear()
+    asyncio.run(clear())
     """Shows basic usage of the Drive v3 API.
     Prints the names and ids of the first 10 files the user has access to.
     """
@@ -58,31 +58,28 @@ def main():
 
     try:
         service = build('drive', 'v3', credentials=creds)
-        #clear()
         # Call the Drive v3 API, page token max value is 1000
         db = database.Database()
-        #asyncio.run(db.clear_database())
-        #asyncio.run(db.clear_database(), debug = True)
-        #logging.basicConfig(level = logging.DEBUG)
-        #db.clear_database()
-        results = service.files().list(driveId="1J2PiI9knOeGH9nvV_NlobXXjJpwr30eO", includeItemsFromAllDrives=True, corpora="drive", supportsAllDrives=True, pageSize=1, fields="nextPageToken, files(id, name)").execute()  # page token max value is 1000
+        results = service.files().list(driveId="0ALT8V7p0m5I5Uk9PVA", includeItemsFromAllDrives=True, corpora="drive", supportsAllDrives=True, pageSize=1, fields="nextPageToken, files(id, name)").execute()  # page token max value is 1000
         # stuff that gets last modified user
         items = results.get('files', [])
         if not items:
             print('No files found.')
             return
-        #db.createEntry(datat);
-        asyncio.run(dtbase(items[0]["id"], items[0]["name"]))
+        tagging = items[0]["name"].split("#", 2)
+        if (len(tagging) >= 3):
+            asyncio.run(dtbase(items[0]["id"], tagging[0], tagging[1], tagging[2]))
         np = results.get('nextPageToken', None)
-        for i in range(150):
+        for i in range(10):
             results = service.files().list(
-                driveId="1J2PiI9knOeGH9nvV_NlobXXjJpwr30eO", includeItemsFromAllDrives=True, corpora="drive", supportsAllDrives=True, pageSize=1000, pageToken = np, fields="nextPageToken, files(id, name)").execute()  # page token max value is 1000
+                driveId="0ALT8V7p0m5I5Uk9PVA", includeItemsFromAllDrives=True, corpora="drive", supportsAllDrives=True, pageSize=1, pageToken = np, fields="nextPageToken, files(id, name)").execute()  # page token max value is 1000
             it = results.get('files', [])
             np = results.get('nextPageToken', None)
             for j in it:
-               if ((j["name"].find("HEIC") == -1) and  (j["name"].find("jpg") == -1)):
-                   #db.createEntry(data);
-                   asyncio.run(dtbase(j["id"], j["name"]))
+                tag = j["name"].split("#",2)
+                if (len(tag)>=2):
+                    asyncio.run(dtbase(j["id"], tag[0], tag[1], tag[2]))
+
 
             
         #pagetoken = service.changes().getStartPageToken(driveId="0ALT8V7p0m5I5Uk9PVA",supportsAllDrives=True).execute()
