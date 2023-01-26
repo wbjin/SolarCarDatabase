@@ -1,6 +1,5 @@
 from __future__ import print_function
 from inspect import isdatadescriptor
-from prisma import Prisma
 import os.path
 
 import database
@@ -18,24 +17,21 @@ from googleapiclient.errors import HttpError
 SCOPES = ['https://www.googleapis.com/auth/drive.metadata.readonly']
 
 async def dtbase(id, name):
-    prisma = Prisma()
-    await primsa.connect()
-    
-    user  = await prisma.user.create(
-        data = {
+    db = database.Database()
+    await db.connect()
+    data = {
         "FileID": id,
         "Division": "xxx",
         "FileName": name,
         "Cycle": "xxx",
         "OldData": True,
     }
-    )
-    await prisma.disconnect()
+    await db.createEntry(data)
     
 # async def clear():
 #     db = database.Database()
 #     await db.connect()
-#     await db.clear_database()
+#     await db.clear_database()clear
     
     
 def main():
@@ -75,33 +71,18 @@ def main():
         if not items:
             print('No files found.')
             return
-        # datat = {
-        #     "FileID": items[0]["id"],
-        #     "Division": "xxx",
-        #     "FileName": items[0]["name"],
-        #     "Cycle": "xxx",
-        #     "OldData": True,
-        # }
         #db.createEntry(datat);
-        dtbase(items[0]["id"], items[0]["name"])
+        asyncio.run(dtbase(items[0]["id"], items[0]["name"]))
         np = results.get('nextPageToken', None)
         for i in range(150):
             results = service.files().list(
                 driveId="0ALT8V7p0m5I5Uk9PVA", includeItemsFromAllDrives=True, corpora="drive", supportsAllDrives=True, pageSize=1000, pageToken = np, fields="nextPageToken, files(id, name)").execute()  # page token max value is 1000
             it = results.get('files', [])
             np = results.get('nextPageToken', None)
-            np = results.get('nextPageToken', None)
             for j in it:
-               #if ((j["name"].find("HEIC") == -1) and  (j["name"].find("jpg") == -1)):
-                #    data = {
-                #         "FileID": j["id"],
-                #         "Division": "xxx",
-                #         "FileName": j["name"],
-                #         "Cycle": "xxx",
-                #         "OldData": True,
-                #    }
+               if ((j["name"].find("HEIC") == -1) and  (j["name"].find("jpg") == -1)):
                    #db.createEntry(data);
-                   dtbase(j["id"], j["name"])
+                   asyncio.run(dtbase(j["id"], j["name"]))
 
             
         #pagetoken = service.changes().getStartPageToken(driveId="0ALT8V7p0m5I5Uk9PVA",supportsAllDrives=True).execute()

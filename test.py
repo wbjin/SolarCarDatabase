@@ -24,7 +24,7 @@ async def dtbase(id, name, division, cycle):
         "Division": division,
         "FileName": name,
         "Cycle": cycle,
-        "OldData": True,
+        "OldData": "xxx",
     }
     await db.createEntry(data)
     
@@ -66,9 +66,11 @@ def main():
         if not items:
             print('No files found.')
             return
-        tagging = items[0]["name"].split("#", 2)
-        if (len(tagging) >= 3):
+        tagging = items[0]["name"].split("#",2)
+        if (len(tagging) >= 2):
             asyncio.run(dtbase(items[0]["id"], tagging[0], tagging[1], tagging[2]))
+        else: 
+            asyncio.run(dtbase(items[0]["id"], items[0]["name"], "---", "---"))
         np = results.get('nextPageToken', None)
         for i in range(10):
             results = service.files().list(
@@ -79,6 +81,8 @@ def main():
                 tag = j["name"].split("#",2)
                 if (len(tag)>=2):
                     asyncio.run(dtbase(j["id"], tag[0], tag[1], tag[2]))
+                else:
+                    asyncio.run(dtbase(j["id"], j["name"], "---", "---"))
 
 
             

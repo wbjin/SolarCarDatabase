@@ -15,5 +15,5 @@ model File {
   Division String
   FileName String
   Cycle String
-  OldData Boolean
+  OldData String
 }

@@ -74,7 +74,7 @@ def main():
         #db.createEntry(datat);
         asyncio.run(dtbase(items[0]["id"], items[0]["name"]))
         np = results.get('nextPageToken', None)
-        for i in range(150):
+        for i in range(1):
             results = service.files().list(
                 driveId="0ALT8V7p0m5I5Uk9PVA", includeItemsFromAllDrives=True, corpora="drive", supportsAllDrives=True, pageSize=1000, pageToken = np, fields="nextPageToken, files(id, name)").execute()  # page token max value is 1000
             it = results.get('files', [])

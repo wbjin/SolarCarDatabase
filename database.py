@@ -61,6 +61,7 @@ class Database:
         #    "FileName": "xxx",
         #    "Cycle": "xxx",
         #    "OldData": "xxx",
+        #    "Tag1": "xxx"
         # }
         try:
             entry = await self.db.file.create(data=data)
