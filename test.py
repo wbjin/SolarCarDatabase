@@ -16,7 +16,7 @@ from googleapiclient.errors import HttpError
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/drive.metadata.readonly']
 
-async def dtbase(id, name, division, cycle):
+async def dtbase(id, name, division, cycle, tag1):
     db = database.Database()
     await db.connect()
     data = {
@@ -25,6 +25,7 @@ async def dtbase(id, name, division, cycle):
         "FileName": name,
         "Cycle": cycle,
         "OldData": "xxx",
+        "Tag1": tag1
     }
     await db.createEntry(data)
     
@@ -66,23 +67,23 @@ def main():
         if not items:
             print('No files found.')
             return
-        tagging = items[0]["name"].split("#",2)
-        if (len(tagging) >= 2):
-            asyncio.run(dtbase(items[0]["id"], tagging[0], tagging[1], tagging[2]))
+        tagging = items[0]["name"].split("#",3)
+        if (len(tagging) >= 3):
+            asyncio.run(dtbase(items[0]["id"], tagging[0], tagging[1], tagging[2], tagging[3]))
         else: 
-            asyncio.run(dtbase(items[0]["id"], items[0]["name"], "---", "---"))
+            asyncio.run(dtbase(items[0]["id"], items[0]["name"], "---", "---", "---"))
         np = results.get('nextPageToken', None)
         for i in range(10):
             results = service.files().list(
-                driveId="0ALT8V7p0m5I5Uk9PVA", includeItemsFromAllDrives=True, corpora="drive", supportsAllDrives=True, pageSize=1, pageToken = np, fields="nextPageToken, files(id, name)").execute()  # page token max value is 1000
+                driveId="0ALT8V7p0m5I5Uk9PVA", includeItemsFromAllDrives=True, corpora="drive", supportsAllDrives=True, pageSize=100, pageToken = np, fields="nextPageToken, files(id, name)").execute()  # page token max value is 1000
             it = results.get('files', [])
             np = results.get('nextPageToken', None)
             for j in it:
-                tag = j["name"].split("#",2)
-                if (len(tag)>=2):
-                    asyncio.run(dtbase(j["id"], tag[0], tag[1], tag[2]))
+                tag = j["name"].split("#",3)
+                if (len(tag)>=3):
+                    asyncio.run(dtbase(j["id"], tag[0], tag[1], tag[2], tag[3]))
                 else:
-                    asyncio.run(dtbase(j["id"], j["name"], "---", "---"))
+                    asyncio.run(dtbase(j["id"], j["name"], "---", "---", "---"))
 
 
             
@@ -123,3 +124,7 @@ if __name__ == '__main__':
 
 # Database:
 # FileID Division FileName Cycle
+
+
+#npx prisma db push  --> after changing schema
+#npx prisma studio --> start database 

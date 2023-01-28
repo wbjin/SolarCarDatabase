@@ -7,7 +7,7 @@ datasource db {
 generator db {
   provider             = "prisma-client-py"
   interface            = "asyncio"
-  recursive_type_depth = 5
+  recursive_type_depth = 6
 }
 
 model File {
@@ -16,4 +16,5 @@ model File {
   FileName String
   Cycle String
   OldData String
+  Tag1 String
 }
