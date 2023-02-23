@@ -16,7 +16,8 @@ from googleapiclient.errors import HttpError
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/drive.metadata.readonly']
 
-async def dtbase(id, name, division, cycle, tag1, url):
+#function to generate entry in db
+async def dtbase(id, name, division, cycle, tag1, tag2, url):
     db = database.Database()
     await db.connect()
     data = {
@@ -26,20 +27,26 @@ async def dtbase(id, name, division, cycle, tag1, url):
         "Cycle": cycle,
         "OldData": "xxx",
         "Tag1": tag1,
+        "Tag2": tag2,
         "Link": url,
     }
     await db.createEntry(data)
     
+#function to clear databse 
 async def clear():
     db = database.Database()
     await db.connect()
     await db.clear_database()
     
+#function to search by tag
+#arguments: data (dictionary, following format with tags in correct key value pairs)
 async def search_tag(data):
     db = database.Database()
     await db.connect()
     return await db.search(data) 
 
+#function to search by tag
+#arguments: name (string, name of file as string)
 async def search_name(name):
     db = database.Database()
     await db.connect()
@@ -102,31 +109,60 @@ def main():
         service = build('drive', 'v3', credentials=creds)
         # Call the Drive v3 API, page token max value is 1000
         db = database.Database()
+        
+        #return from the list call on Google Drive API
+        #store next page token for future calls
+        #pageSize is the number of files
         results = service.files().list(driveId="0ALT8V7p0m5I5Uk9PVA", includeItemsFromAllDrives=True, corpora="drive", supportsAllDrives=True, pageSize=1, fields="nextPageToken, files(id, name)").execute()  # page token max value is 1000
-        # stuff that gets last modified user
+
+        #put elements of results in an array
         items = results.get('files', [])
         if not items:
             print('No files found.')
             return
-        tagging = items[0]["name"].split("#",3)
+        
+        #split the name of the file (in index 0 of items) where the # is, the number of splits is number of tags
+        tagging = items[0]["name"].split("#",4)
+        
+        #url of the file is below url + document id
+        #future implementation: make link work for different types of documents (only works for docs right now)
         url = "https://docs.google.com/document/d/" + items[0]["id"]
-        if (len(tagging) >= 3):
-            asyncio.run(dtbase(items[0]["id"], tagging[0], tagging[1], tagging[2], tagging[3], url))
-        else: 
-            asyncio.run(dtbase(items[0]["id"], items[0]["name"], "---", "---", "---",url))
+        
+        #if all tags are present, pass in values from the split and append to dictionary
+        if (len(tagging) >= 4):
+            asyncio.run(dtbase(items[0]["id"], tagging[0], tagging[1], tagging[2], tagging[3], tagging[4], url))
+        else:   #else append to dictionary with only name, id, url
+            asyncio.run(dtbase(items[0]["id"], items[0]["name"], "---", "---", "---","---", url))
+            
+        #store next page token from first call, used to make sure next call doesn't make repeats
         np = results.get('nextPageToken', None)
+        
+        #change number of iterations to get all the files
         for i in range(1):
+            
+            #store return from list call into results again 
             results = service.files().list(
-                driveId="0ALT8V7p0m5I5Uk9PVA", includeItemsFromAllDrives=True, corpora="drive", supportsAllDrives=True, pageSize=15, pageToken = np, fields="nextPageToken, files(id, name)").execute()  # page token max value is 1000
+                driveId="0ALT8V7p0m5I5Uk9PVA", includeItemsFromAllDrives=True, corpora="drive", supportsAllDrives=True, pageSize=15, pageToken = np, fields="nextPageToken, files(id, name)").execute()  
+            #page token max value is 1000
+            
+            #store output from results into it
+            #each element in it is an array with the file information
             it = results.get('files', [])
+            
+            #store nextpagetoken for next call
             np = results.get('nextPageToken', None)
+            
             for j in it:
-                tag = j["name"].split("#",3)
+                #split at # for different tags
+                tag = j["name"].split("#",4)
+                
+                #url 
                 url = "https://docs.google.com/document/d/" + j["id"]
-                if (len(tag)>=3):
-                    asyncio.run(dtbase(j["id"], tag[0], tag[1], tag[2], tag[3],url))
-                else:
-                    asyncio.run(dtbase(j["id"], j["name"], "---", "---", "---",url))
+                #if all tags are present, 4 for now, append to databse with 4 tags
+                if (len(tag)>=4):
+                    asyncio.run(dtbase(j["id"], tag[0], tag[1], tag[2], tag[3],tag[4], url))
+                else:   #else append with only id name and url
+                    asyncio.run(dtbase(j["id"], j["name"], "---", "---", "---","---", url))
         
         data = {
         # "FileID": "1sht11EBDb8ULn8G_5gkUobNMMwz1tP6jXqsGiD8FMzA",
@@ -136,13 +172,11 @@ def main():
         # "OldData": "xxx",
         "Tag1": "dr2"
         }
-        #print(asyncio.run(search_name(data)))
-        print(asyncio.run(search_name("Team library")))
-        #result = asyncio.run(search_many("strategy", "dr2"))
-        #print(asyncio.run(search_many2("strategy", "xxx")))
-        #print(asyncio.run(search_tag(data)))
         
-    
+        #testing  search_name function
+        print(asyncio.run(search_name("Team library")))
+
+        
     except HttpError as error:
     # TODO(developer) - Handle errors from drive API.
             print(f'An error occurred: {error}')
@@ -158,3 +192,9 @@ if __name__ == '__main__':
 #prisma generate to generate the dev.db thing after changing schema
 #npx prisma db push  --> after changing schema
 #npx prisma studio --> start database 
+
+
+#things to do:
+    #implement more flexible search function
+    #make code more readable
+    #

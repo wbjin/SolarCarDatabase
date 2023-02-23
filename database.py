@@ -61,14 +61,15 @@ class Database:
         #    "FileName": "xxx",
         #    "Cycle": "xxx",
         #    "OldData": "xxx",
+        #    "URL"
         #    "Tag1": "xxx"
         # }
         try:
             entry = await self.db.file.create(data=data)
             return entry
         except Exception as e:
-            print("CREATE FAILED, SKIPPING\n")
-            print(e)
+            # print("CREATE FAILED, SKIPPING\n")
+            # print(e)
             return None
 
     async def update_file(self, file_id, data):
@@ -105,5 +106,50 @@ class Database:
         # search() with the above data returns all entries where Division is
         # "yyy" and Cycle is "xxx"
 
-        entries = await self.db.file.find_many(where=data, order=order)
+        entries = await self.db.file.find_many(where=data)
         return entries
+    
+    
+    # async def mulit_search(self, data1, data2, order='asc'):
+    #     # returns all entries that match the provided data 
+    #     entries = await self.db.file.find_many({
+    #         where:= {
+    #             OR:= (
+    #                 {
+    #                     Division:= {
+    #                         contains:= data1,
+    #                     },
+    #                 },
+    #                 {
+    #                     Tag1:= {
+    #                         contains:= data2,
+    #                     },
+    #                 },
+    #             ),
+    #         },
+    #     })
+    #     return entries 
+    
+    #search function
+    
+    
+
+    # async def search_tag(self, data, tag, division):
+    #     const search_result = await prisma.data.findMany({
+    #         where: {
+    #             OR: [
+    #             {
+    #                 Tag1: {
+    #                 equals: tag,
+    #                 },
+    #             },
+    #             {
+    #             division: {
+    #                 equals: division,
+    #                 },
+    #             },
+    #             ],
+    #         },
+    #         })
+    #     return search_result
+#npx prisma db push  --> after changing schema

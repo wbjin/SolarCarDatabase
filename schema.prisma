@@ -17,5 +17,6 @@ model File {
   Cycle String
   OldData String
   Tag1 String
+  Tag2 String
   Link String
 }
