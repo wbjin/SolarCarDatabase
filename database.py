@@ -109,47 +109,9 @@ class Database:
         entries = await self.db.file.find_many(where=data)
         return entries
     
-    
-    # async def mulit_search(self, data1, data2, order='asc'):
-    #     # returns all entries that match the provided data 
-    #     entries = await self.db.file.find_many({
-    #         where:= {
-    #             OR:= (
-    #                 {
-    #                     Division:= {
-    #                         contains:= data1,
-    #                     },
-    #                 },
-    #                 {
-    #                     Tag1:= {
-    #                         contains:= data2,
-    #                     },
-    #                 },
-    #             ),
-    #         },
-    #     })
-    #     return entries 
-    
-    #search function
-    
-    
-
-    # async def search_tag(self, data, tag, division):
-    #     const search_result = await prisma.data.findMany({
-    #         where: {
-    #             OR: [
-    #             {
-    #                 Tag1: {
-    #                 equals: tag,
-    #                 },
-    #             },
-    #             {
-    #             division: {
-    #                 equals: division,
-    #                 },
-    #             },
-    #             ],
-    #         },
-    #         })
-    #     return search_result
+    async def search_many(self, data, order='asc'):
+        entries = await self.db.file.find_many(
+            where=data,
+        )
+        return entries
 #npx prisma db push  --> after changing schema

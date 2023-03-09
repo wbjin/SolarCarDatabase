@@ -55,32 +55,14 @@ async def search_name(name):
     }
     return await db.search(data)
 
-# async def search_many(data1, data2):
-#     db = database.Database()
-#     await db.connect()
-#     return await db.mulit_search(data1, data2)
-
-async def search_many2(data1, data2):
-    #search for occurences of data1 or data2 instead of both together
+async def search_many(data):
     db = database.Database()
     await db.connect()
-    data1_form  = {
-        "Division": data1
-    }
-    data2_form = {
-        "OldData": data2
-    }
-    data1_result = (await db.search(data1_form))
-    print(data1_result[0])
-    data1_set = set(data1_result)
-    data2_result = await db.search(data2_form)
-    print(data2_result)
-    
-    elim_repeats = data2_result - data1_set
-    final = data1_result + list(elim_repeats)
-    
-    return final
-    
+    return await db.search_many(data)
+
+#async def search_many2(data1, data2):
+    #search for occurences of data1 or data2 instead of both together
+        
     
     
 def main():
@@ -142,7 +124,7 @@ def main():
             
             #store return from list call into results again 
             results = service.files().list(
-                driveId="0ALT8V7p0m5I5Uk9PVA", includeItemsFromAllDrives=True, corpora="drive", supportsAllDrives=True, pageSize=15, pageToken = np, fields="nextPageToken, files(id, name)").execute()  
+                driveId="0ALT8V7p0m5I5Uk9PVA", includeItemsFromAllDrives=True, corpora="drive", supportsAllDrives=True, pageSize=5, pageToken = np, fields="nextPageToken, files(id, name)").execute()  
             #page token max value is 1000
             
             #store output from results into it
@@ -163,18 +145,23 @@ def main():
                     asyncio.run(dtbase(j["id"], tag[0], tag[1], tag[2], tag[3],tag[4], url))
                 else:   #else append with only id name and url
                     asyncio.run(dtbase(j["id"], j["name"], "---", "---", "---","---", url))
-        
-        data = {
-        # "FileID": "1sht11EBDb8ULn8G_5gkUobNMMwz1tP6jXqsGiD8FMzA",
-        "Division": "strategy",
-        #"FileName": "Team Library",
-        #"Cycle": "astrum"
-        # "OldData": "xxx",
-        "Tag1": "dr2"
-        }
+    
         
         #testing  search_name function
         print(asyncio.run(search_name("Team library")))
+        
+        test_many = {
+            'OldData': "xxx",
+        }
+        print(asyncio.run(search_many(test_many)))
+
+        test_tags = {
+            'FileName': "Team library",
+            'Division': "strat",
+        }
+        print(asyncio.run(search_many(test_tags)))
+        #search_many
+        #print(asyncio.run(search_many2("strategy", "xxx")))
 
         
     except HttpError as error:
@@ -185,11 +172,7 @@ def main():
 if __name__ == '__main__':
     main()
 
-
-# Database:
-# FileID Division FileName Cycle
-
-#prisma generate to generate the dev.db thing after changing schema
+#prisma generate --> to generate dev.db
 #npx prisma db push  --> after changing schema
 #npx prisma studio --> start database 
 
@@ -197,4 +180,3 @@ if __name__ == '__main__':
 #things to do:
     #implement more flexible search function
     #make code more readable
-    #
