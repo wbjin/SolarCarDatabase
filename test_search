@@ -55,10 +55,10 @@ async def search_name(name):
     }
     return await db.search(data)
 
-async def search_many(data):
+async def search_many(data, include):
     db = database.Database()
     await db.connect()
-    return await db.search_many(data)
+    return await db.search_many(data, include)
 
 #async def search_many2(data1, data2):
     #search for occurences of data1 or data2 instead of both together
@@ -150,16 +150,20 @@ def main():
         #testing  search_name function
         print(asyncio.run(search_name("Team library")))
         
+        include = {
+            'FileID': True, 
+        }
+        
         test_many = {
             'OldData': "xxx",
         }
-        print(asyncio.run(search_many(test_many)))
+        print(asyncio.run(search_many(test_many, include)))
 
         test_tags = {
             'FileName': "Team library",
             'Division': "strat",
         }
-        print(asyncio.run(search_many(test_tags)))
+        print(asyncio.run(search_many(test_tags, include)))
         #search_many
         #print(asyncio.run(search_many2("strategy", "xxx")))
 
@@ -179,4 +183,3 @@ if __name__ == '__main__':
 
 #things to do:
     #implement more flexible search function
-    #make code more readable

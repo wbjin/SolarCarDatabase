@@ -109,9 +109,10 @@ class Database:
         entries = await self.db.file.find_many(where=data)
         return entries
     
-    async def search_many(self, data, order='asc'):
+    async def search_many(self, data, include, order='asc'):
         entries = await self.db.file.find_many(
             where=data,
+            include=include,
         )
         return entries
 #npx prisma db push  --> after changing schema
