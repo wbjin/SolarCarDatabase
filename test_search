@@ -25,8 +25,7 @@ async def dtbase(id, name, division, cycle, tag1, tag2, url):
         "Division": division,
         "FileName": name,
         "Cycle": cycle,
-        "OldData": "xxx",
-        "Tag1": tag1,
+        "Type": tag1,
         "Tag2": tag2,
         "Link": url,
     }
@@ -53,12 +52,22 @@ async def search_name(name):
     data = {
         "FileName": name
     }
-    return await db.search(data)
+    object = await db.search(data)
+    results = []
+    for item in object:
+        results.append((item.FileName,item.Link))
+    print(results)
+    return results
 
-async def search_many(data, include):
+async def search_many(data):
     db = database.Database()
     await db.connect()
-    return await db.search_many(data, include)
+    object = await db.search_many(data)
+    results = []
+    for item in object:
+        results.append((item.FileName,item.Link))
+    print(results)
+    return results 
 
 #async def search_many2(data1, data2):
     #search for occurences of data1 or data2 instead of both together
@@ -108,19 +117,19 @@ def main():
         
         #url of the file is below url + document id
         #future implementation: make link work for different types of documents (only works for docs right now)
-        url = "https://docs.google.com/document/d/" + items[0]["id"]
-        
-        #if all tags are present, pass in values from the split and append to dictionary
         if (len(tagging) >= 4):
+            url = "https://"+tagging[3]+".google.com/document/d/" + items[0]["id"]
+        #if all tags are present, pass in values from the split and append to dictionary
             asyncio.run(dtbase(items[0]["id"], tagging[0], tagging[1], tagging[2], tagging[3], tagging[4], url))
         else:   #else append to dictionary with only name, id, url
+            url = "https://docs.google.com/document/d/" + str(items[0])
             asyncio.run(dtbase(items[0]["id"], items[0]["name"], "---", "---", "---","---", url))
             
         #store next page token from first call, used to make sure next call doesn't make repeats
         np = results.get('nextPageToken', None)
         
         #change number of iterations to get all the files
-        for i in range(1):
+        for i in range(3):
             
             #store return from list call into results again 
             results = service.files().list(
@@ -137,35 +146,30 @@ def main():
             for j in it:
                 #split at # for different tags
                 tag = j["name"].split("#",4)
-                
-                #url 
-                url = "https://docs.google.com/document/d/" + j["id"]
-                #if all tags are present, 4 for now, append to databse with 4 tags
                 if (len(tag)>=4):
+                #url 
+                    url = "https://"+tag[3]+".google.com/document/d/" + j["id"]
+                #if all tags are present, 4 for now, append to databse with 4 tags
+                
                     asyncio.run(dtbase(j["id"], tag[0], tag[1], tag[2], tag[3],tag[4], url))
                 else:   #else append with only id name and url
+                    url = "https://docs.google.com/document/d/" + j["id"]
                     asyncio.run(dtbase(j["id"], j["name"], "---", "---", "---","---", url))
     
         
         #testing  search_name function
-        print(asyncio.run(search_name("Team library")))
-        
-        include = {
-            'FileID': True, 
-        }
+        asyncio.run(search_name("DR2.5+ Data"))
         
         test_many = {
-            'OldData': "xxx",
+            'Division': "strat",
         }
-        print(asyncio.run(search_many(test_many, include)))
+        asyncio.run(search_many(test_many))
 
         test_tags = {
             'FileName': "Team library",
             'Division': "strat",
         }
-        print(asyncio.run(search_many(test_tags, include)))
-        #search_many
-        #print(asyncio.run(search_many2("strategy", "xxx")))
+        asyncio.run(search_many(test_tags))
 
         
     except HttpError as error:
